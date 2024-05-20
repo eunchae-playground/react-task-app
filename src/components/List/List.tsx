@@ -1,3 +1,4 @@
+import { Droppable } from "@hello-pangea/dnd";
 import { GrSubtract } from "react-icons/gr";
 import { v4 } from "uuid";
 import { useTypedDispatch } from "../../hooks/redux";
@@ -35,33 +36,42 @@ const List = ({ list, boardId }: TListProps) => {
     dispatch(setModalActive(true));
   };
   return (
-    <div className={listWrapper}>
-      <div className={header}>
-        <div className={name}>{list.listName}</div>
-        <GrSubtract
-          className={deleteButton}
-          onClick={() => handleListDelete(list.listId)}
-        />
-      </div>
-
-      {list.tasks.map((task, index) => (
+    <Droppable droppableId={list.listId}>
+      {(provided) => (
         <div
-          key={task.taskId}
-          onClick={() =>
-            handleTaskChange(boardId, list.listId, task.taskId, task)
-          }
+          {...provided.droppableProps}
+          ref={provided.innerRef}
+          className={listWrapper}
         >
-          <Task
-            taskName={task.taskName}
-            taskDescription={task.taskDescription}
-            boardId={boardId}
-            id={task.taskId}
-            index={index}
-          />
+          <div className={header}>
+            <div className={name}>{list.listName}</div>
+            <GrSubtract
+              className={deleteButton}
+              onClick={() => handleListDelete(list.listId)}
+            />
+          </div>
+
+          {list.tasks.map((task, index) => (
+            <div
+              key={task.taskId}
+              onClick={() =>
+                handleTaskChange(boardId, list.listId, task.taskId, task)
+              }
+            >
+              <Task
+                taskName={task.taskName}
+                taskDescription={task.taskDescription}
+                boardId={boardId}
+                id={task.taskId}
+                index={index}
+              />
+            </div>
+          ))}
+          {provided.placeholder}
+          <ActionButton boardId={boardId} listId={list.listId} />
         </div>
-      ))}
-      <ActionButton boardId={boardId} listId={list.listId} />
-    </div>
+      )}
+    </Droppable>
   );
 };
 

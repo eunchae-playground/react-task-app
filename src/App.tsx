@@ -1,3 +1,4 @@
+import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { useState } from "react";
 import { v4 } from "uuid";
 import "./App.css.ts";
@@ -13,7 +14,7 @@ import EditModal from "./components/EditModal/EditModal.tsx";
 import ListsContainer from "./components/ListsContainer/ListsContainer.tsx";
 import LoggerModal from "./components/LoggerModal/LoggerModal.tsx";
 import { useTypedDispatch, useTypedSelector } from "./hooks/redux.ts";
-import { deleteBoard } from "./store/slices/boardsSlice.ts";
+import { deleteBoard, sort } from "./store/slices/boardsSlice.ts";
 import { addLog } from "./store/slices/loggerSlice.ts";
 
 function App() {
@@ -54,6 +55,45 @@ function App() {
       alert("최소 게시판 개수는 한 개 입니다.");
     }
   };
+  const handleDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) {
+      return;
+    }
+
+    const sourceList = activeBoard.lists.filter(
+      (list) => list.listId === source.droppableId
+    )[0];
+    dispatch(
+      sort({
+        boardIndex: boards.findIndex(
+          (board) => board.boardId === activeBoardId
+        ),
+        droppableIdStart: source.droppableId,
+        droppableIdEnd: destination?.droppableId,
+        droppableIndexStart: source.index,
+        droppableIndexEnd: destination?.index,
+        draggableId,
+      })
+    );
+
+    dispatch(
+      addLog({
+        logId: v4(),
+        logMessage: `리스트 "${sourceList.listName}"에서 리스트 "${
+          activeBoard.lists.filter(
+            (list) => list.listId === destination?.droppableId
+          )[0].listName
+        }"으로 ${
+          sourceList.tasks.filter((task) => task.taskId === draggableId)[0]
+            .taskName
+        }을 옮김.`,
+        logAuthor: "User",
+        logTimestamp: String(Date.now()),
+      })
+    );
+  };
 
   return (
     <div className={appContainer}>
@@ -66,10 +106,12 @@ function App() {
       />
 
       <div className={board}>
-        <ListsContainer
-          lists={activeBoard.lists}
-          boardId={activeBoard.boardId}
-        />
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <ListsContainer
+            lists={activeBoard.lists}
+            boardId={activeBoard.boardId}
+          />
+        </DragDropContext>
       </div>
 
       <div className={buttons}>

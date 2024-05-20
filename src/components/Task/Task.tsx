@@ -4,7 +4,6 @@ import { container, description, title } from "./Task.css";
 type TTaskProps = {
   index: number;
   id: string;
-  boardId: string;
   taskName: string;
   taskDescription: string;
 };
@@ -12,7 +11,6 @@ type TTaskProps = {
 const Task = ({
   taskName,
   taskDescription,
-  boardId,
   id,
   index,
 }: TTaskProps) => {
